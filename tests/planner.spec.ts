@@ -4,7 +4,6 @@ import {
   demoSchedulesFixture,
   healthFixture,
   sectionFixture,
-  stressFixture,
   swapFixture,
   vibesFixture,
 } from "../src/test/fixtures";
