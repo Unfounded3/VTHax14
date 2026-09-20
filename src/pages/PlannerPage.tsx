@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import AppHeader from "../components/AppHeader";
-import HelpButton from "../components/HelpButton";
 import CenterPanel from "../components/CenterPanel";
 import SearchSidebar from "../components/SearchSidebar";
 import EmptyState from "../components/EmptyState";
@@ -84,7 +83,6 @@ export default function PlannerPage() {
                     <button type="button" aria-pressed={mobileView === "search"} onClick={() => setMobileView("search")} className={mobileView === "search" ? "bg-soft-maroon px-3 py-3 text-xs font-semibold text-maroon" : "px-3 py-3 text-xs font-semibold text-ink-secondary"}>Search</button>
                     <button type="button" aria-pressed={mobileView === "schedule"} onClick={() => setMobileView("schedule")} className={mobileView === "schedule" ? "bg-soft-maroon px-3 py-3 text-xs font-semibold text-maroon" : "px-3 py-3 text-xs font-semibold text-ink-secondary"}>Schedule</button>
                   </nav>
-                  <HelpButton />
                 </div>
                 <PrintSchedule />
               </ToastProvider>
