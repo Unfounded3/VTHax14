@@ -52,10 +52,18 @@ from the responsive checks are written under `test-results/` (gitignored).
 
 ## Running against the separately supplied backend
 
-The HokieLens backend is a separate project that lives in `backend/` (see `backend/README.md` for
-its setup flags and API route table). The frontend expects the eight documented endpoints under
-`/api`: health, course search, buildings matrix, analyze, swap, stress, professor vibes, and demo
-schedules.
+The HokieLens backend lives in `backend/` (see `backend/README.md`). Install its Python
+dependencies from the repository root with `pip install -r requirements.txt`, which pulls
+`backend/requirements.txt`. Then:
+
+```powershell
+pip install -r requirements.txt
+cd backend
+uvicorn main:app
+```
+
+The frontend expects the eight documented endpoints under `/api`: health, course search, buildings
+matrix, analyze, swap, stress, professor vibes, and demo schedules.
 
 1. Start the backend in its own process, using its own documentation.
 2. Point the frontend at it with `VITE_API_BASE_URL` (for example
