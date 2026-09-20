@@ -16,7 +16,7 @@ import { formatMinutes, formatModality, formatWeekdayShort } from "../lib/time";
 const DAY_ORDER: Weekday[] = ["M", "T", "W", "R", "F", "S", "U"];
 
 const PLANNING_DISCLAIMER =
-  "HokieLens is a student-built planning tool and is not an official Virginia Tech registration service. Risk, GPA, stress, and commute values are deterministic planning heuristics, not forecasts of academic performance.";
+  "HokieLens is a student-built planning tool and is not an official Virginia Tech registration service. Risk, GPA, and commute values are deterministic planning heuristics, not forecasts of academic performance.";
 
 interface PrintMeeting {
   key: string;
