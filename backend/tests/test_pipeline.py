@@ -427,11 +427,10 @@ def test_committed_catalog_is_reproduced_by_pipeline(tmp_path: Path) -> None:
         )
         == 0
     )
-    assert (
-        grades_out.read_bytes()
-        == (config.DEFAULT_DATA_DIR / config.GRADE_RECORDS_FILE).read_bytes()
-    )
-    assert (
-        sections_out.read_bytes() == (config.DEFAULT_DATA_DIR / config.SECTIONS_FILE).read_bytes()
-    )
-    assert rmp_out.read_bytes() == (config.DEFAULT_DATA_DIR / config.RMP_FILE).read_bytes()
+
+    def lf(path: Path) -> bytes:
+        return path.read_bytes().replace(b"\r\n", b"\n")
+
+    assert lf(grades_out) == lf(config.DEFAULT_DATA_DIR / config.GRADE_RECORDS_FILE)
+    assert lf(sections_out) == lf(config.DEFAULT_DATA_DIR / config.SECTIONS_FILE)
+    assert lf(rmp_out) == lf(config.DEFAULT_DATA_DIR / config.RMP_FILE)

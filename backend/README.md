@@ -61,8 +61,9 @@ pip install -r requirements.txt
 
 ## Run
 
-All commands run from the repository root (the directory containing `main.py`).
-Data paths resolve relative to the repository, not the current directory.
+All commands run from this directory (`backend/`, the directory containing
+`main.py`). Data paths resolve relative to this package, not the current
+directory.
 
 ```powershell
 uvicorn main:app --reload           # development
@@ -428,7 +429,7 @@ parts: the other four factors and expected GPA. `meta.data_notes[0]` starts with
 
 Scripts live in `scripts/` and are **never imported by the server**. Importing a
 script module does not write files, load `.env`, or make network calls. Run them
-from the repository root. Outputs are UTF-8 JSON with sorted keys, indent 2, a
+from this `backend/` directory. Outputs are UTF-8 JSON with sorted keys, indent 2, a
 trailing newline, and atomic replace (temp file, never append). Re-running with
 the same local input is byte-identical. Failures name the file/row and exit
 nonzero. Constants live in `config.py`.

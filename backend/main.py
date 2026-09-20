@@ -1,6 +1,6 @@
 """HokieLens FastAPI application (PRD 2, 6).
 
-Run from the repository root::
+Run from the ``backend/`` directory::
 
     uvicorn main:app            # verification
     uvicorn main:app --reload   # development

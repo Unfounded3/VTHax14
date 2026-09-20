@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Repository layout (paths resolve relative to this file, not the CWD)
+# Backend package layout (paths resolve relative to this file, not the CWD)
 # ---------------------------------------------------------------------------
 
 REPO_ROOT: Path = Path(__file__).resolve().parent
