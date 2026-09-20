@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * HokieLens design tokens (frontend PRD §7.1).
+ * Tailwind colors in tailwind.config.ts resolve to these custom properties so a
+ * tone can be adjusted in exactly one place.
+ */
+:root {
+  --color-maroon: #861f41; /* Primary maroon */
+  --color-maroon-dark: #5e1230; /* Primary maroon, dark */
+  --color-orange: #e87722; /* Burnt orange accent */
+  --color-bg-warm: #f7f5f4; /* Warm background */
+  --color-panel: #ffffff; /* Panel background */
+  --color-soft-maroon: #f7eef2; /* Soft maroon surface */
+  --color-text-primary: #1e2430; /* Text primary */
+  --color-text-secondary: #667085; /* Text secondary */
+  --color-border: #e4e7ec; /* Border */
+  --color-success: #18794e; /* Success */
+  --color-warning: #b54708; /* Warning */
+  --color-danger: #b42318; /* Danger */
+  --color-info: #175cd3; /* Info */
+}
+
+html {
+  background-color: var(--color-bg-warm);
+  color: var(--color-text-primary);
+}
+
+body {
+  min-width: 320px;
+}
+
+::selection {
+  background-color: var(--color-maroon);
+  color: #ffffff;
+}
+
+/* Visible focus state everywhere (PRD §12 WCAG 2.1 AA). */
+*:focus-visible {
+  outline: 2px solid var(--color-maroon);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@layer components {
+  /* Dusk sky for the Burruss-inspired hero illustration. */
+  .hero-sky {
+    background: linear-gradient(
+      165deg,
+      var(--color-maroon-dark) 0%,
+      var(--color-maroon) 42%,
+      var(--color-orange) 120%
+    );
+  }
+
+  /* Local schematic map texture — grid + soft study-area tints. No external tiles. */
+  .map-grid {
+    background-color: var(--color-bg-warm);
+    background-image:
+      linear-gradient(to right, rgb(228 231 236 / 0.9) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(228 231 236 / 0.9) 1px, transparent 1px),
+      radial-gradient(circle at 30% 28%, var(--color-soft-maroon), transparent 62%),
+      radial-gradient(circle at 76% 66%, rgb(232 119 34 / 0.12), transparent 55%);
+    background-size:
+      34px 34px,
+      34px 34px,
+      100% 100%,
+      100% 100%;
+  }
+}
+
+/* Respect reduced-motion preferences (PRD §12.10). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

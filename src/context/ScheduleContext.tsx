@@ -1,0 +1,158 @@
+/* eslint-disable react-refresh/only-export-components -- this module intentionally
+   exports the provider component and its hook together. */
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Section } from "../api/types";
+import { useScheduleUrl } from "../hooks/useScheduleUrl";
+
+export interface ScheduleState {
+  /** Ordered, de-duplicated CRNs parsed from the URL. Canonical selection. */
+  crns: string[];
+  isFull: boolean;
+  /** Full documented Section objects currently available in memory, by CRN. */
+  sectionsByCrn: Readonly<Record<string, Section>>;
+  /** Selected sections in URL order, limited to those we can hydrate. */
+  selectedSections: Section[];
+  /**
+   * Selected CRNs with no in-memory Section. The documented contract has no
+   * section-by-CRN lookup, so after a URL restore these cannot be hydrated
+   * without fetching search results or calling analyze. UI should surface them
+   * as "details unavailable"; never fabricate Section data.
+   */
+  unavailableCrns: string[];
+  /** Append a CRN to the URL when no full Section object is available. */
+  addCrn: (crn: string) => void;
+  /** Add to the URL and cache the full Section in one step. */
+  addSection: (section: Section) => void;
+  /** Remove from the URL and prune cached details. */
+  removeCrn: (crn: string) => void;
+  /** Clear the URL selection and the in-memory cache. */
+  clear: () => void;
+  /** Cache one full Section (e.g. from search results). */
+  registerSection: (section: Section) => void;
+  /** Cache many full Sections. */
+  registerSections: (sections: Section[]) => void;
+}
+
+const ScheduleContext = createContext<ScheduleState | null>(null);
+
+/**
+ * Provides one URL-backed schedule state plus an ephemeral selected-section
+ * cache. The URL `crns` parameter stays the canonical selection and the only
+ * durable representation; the cache is never written to local storage and is
+ * only filled from already-available documented Section objects.
+ */
+export function ScheduleProvider({ children }: { children: ReactNode }) {
+  const {
+    crns,
+    isFull,
+    addCrn,
+    removeCrn: removeUrlCrn,
+    clear: clearUrl,
+  } = useScheduleUrl();
+
+  const [sectionsByCrn, setSectionsByCrn] = useState<Record<string, Section>>({});
+
+  const registerSections = useCallback((sections: Section[]) => {
+    if (sections.length === 0) return;
+    setSectionsByCrn((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      for (const section of sections) {
+        if (!section || !section.crn) continue;
+        if (next[section.crn] !== section) {
+          next[section.crn] = section;
+          changed = true;
+        }
+      }
+      return changed ? next : previous;
+    });
+  }, []);
+
+  const registerSection = useCallback(
+    (section: Section) => registerSections([section]),
+    [registerSections],
+  );
+
+  const addSection = useCallback(
+    (section: Section) => {
+      registerSection(section);
+      addCrn(section.crn);
+    },
+    [addCrn, registerSection],
+  );
+
+  const removeCrn = useCallback(
+    (crn: string) => {
+      removeUrlCrn(crn);
+      setSectionsByCrn((previous) => {
+        if (!(crn in previous)) return previous;
+        const next = { ...previous };
+        delete next[crn];
+        return next;
+      });
+    },
+    [removeUrlCrn],
+  );
+
+  const clear = useCallback(() => {
+    clearUrl();
+    setSectionsByCrn((previous) => (Object.keys(previous).length === 0 ? previous : {}));
+  }, [clearUrl]);
+
+  const selectedSections = useMemo(
+    () => crns.map((crn) => sectionsByCrn[crn]).filter((section): section is Section => Boolean(section)),
+    [crns, sectionsByCrn],
+  );
+
+  const unavailableCrns = useMemo(
+    () => crns.filter((crn) => !(crn in sectionsByCrn)),
+    [crns, sectionsByCrn],
+  );
+
+  const value = useMemo<ScheduleState>(
+    () => ({
+      crns,
+      isFull,
+      sectionsByCrn,
+      selectedSections,
+      unavailableCrns,
+      addCrn,
+      addSection,
+      removeCrn,
+      clear,
+      registerSection,
+      registerSections,
+    }),
+    [
+      crns,
+      isFull,
+      sectionsByCrn,
+      selectedSections,
+      unavailableCrns,
+      addCrn,
+      addSection,
+      removeCrn,
+      clear,
+      registerSection,
+      registerSections,
+    ],
+  );
+
+  return <ScheduleContext.Provider value={value}>{children}</ScheduleContext.Provider>;
+}
+
+/** Access the selected schedule. Must be used inside a `ScheduleProvider`. */
+export function useSchedule(): ScheduleState {
+  const value = useContext(ScheduleContext);
+  if (!value) {
+    throw new Error("useSchedule must be used within a ScheduleProvider.");
+  }
+  return value;
+}
