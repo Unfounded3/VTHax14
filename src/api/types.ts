@@ -253,45 +253,6 @@ export interface SwapResponse {
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/stress
-// ---------------------------------------------------------------------------
-
-export interface StressRequest {
-  crns: string[];
-  scenario: StressScenarioType;
-  /** 1–16. Narrative only; the backend has no assignment calendar. */
-  week: number;
-}
-
-export interface StressScenario {
-  type: StressScenarioType;
-  week: number;
-}
-
-export interface StressPenalty {
-  crn: string;
-  course_id: string;
-  points: number;
-  impact: StressImpact;
-  reason: string;
-}
-
-export interface StressMeta {
-  heuristic: boolean;
-  note: string;
-}
-
-export interface StressResponse {
-  analysis: AnalyzeResponse;
-  scenario: StressScenario;
-  original_risk: number;
-  stressed_risk: number;
-  delta: number;
-  penalties: StressPenalty[];
-  meta: StressMeta;
-}
-
-// ---------------------------------------------------------------------------
 // GET /api/professors/{surname}/vibes
 // ---------------------------------------------------------------------------
 
