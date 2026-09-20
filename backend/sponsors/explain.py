@@ -26,9 +26,9 @@ from sponsors import configure_stdio, load_local_env
 ENV_GEMINI_KEY = "GEMINI_API_KEY"
 ENV_GEMINI_MODEL = "GEMINI_MODEL"
 ENV_GEMINI_ENABLE = "HOKIELENS_GEMINI"
-DEFAULT_MODEL = "gemini-2.0-flash"
+DEFAULT_MODEL = "gemini-3.6-flash"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-TIMEOUT_S = 8.0
+TIMEOUT_S = 20.0
 
 
 class GeminiError(Exception):
@@ -227,7 +227,7 @@ def call_gemini(facts: dict[str, Any], *, key: str, model: str) -> str:
         ],
         "generationConfig": {
             "temperature": 0.1,
-            "maxOutputTokens": 512,
+            "maxOutputTokens": 2048,
             "responseMimeType": "application/json",
         },
     }

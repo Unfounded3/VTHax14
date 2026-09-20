@@ -95,7 +95,7 @@ environment only when `--allow-network` is passed.
 | `GOOGLE_MAPS_API_KEY` | unset | **Pipeline only.** Required for `fetch_buildings.py` / `fetch_walk_matrix.py` when `--allow-network` is set. The running server never reads this variable. |
 | `HOKIELENS_GEMINI` | `0` | **Optional gateway/CLI only.** `1` plus `GEMINI_API_KEY` enables the grounded Gemini rewrite. `uvicorn main:app` never reads these. |
 | `GEMINI_API_KEY` | unset | **Optional gateway/CLI only.** Server-side. Never commit, never log, never send to the browser. |
-| `GEMINI_MODEL` | `gemini-2.0-flash` | Optional model override for the explain CLI/gateway. |
+| `GEMINI_MODEL` | `gemini-3.6-flash` | Optional model override for the explain CLI/gateway. |
 | `ANS_RA_URL` | unset | Optional GoDaddy ANS Registration Authority base URL. Dry-run unless `--allow-network` and CSRs exist. |
 
 Boolean flags accept `1/0`, `true/false`, `yes/no`, `on/off` (case-insensitive).
