@@ -1,13 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppHeader from "../components/AppHeader";
 import HelpButton from "../components/HelpButton";
 import HeroPanel from "../components/HeroPanel";
 import SearchSidebar from "../components/SearchSidebar";
 import EmptyState from "../components/EmptyState";
-import { CampusMapPanel, WeeklySchedulePanel } from "../components/PlaceholderPanels";
+import CampusMap from "../components/CampusMap";
+import RiskOverview from "../components/RiskOverview";
+import StressTest from "../components/StressTest";
+import PrintSchedule from "../components/PrintSchedule";
+import WeeklyCalendar from "../components/WeeklyCalendar";
+import { MapSelectionProvider } from "../context/MapSelectionContext";
+import { ProfessorDrawerProvider } from "../context/ProfessorDrawerContext";
 import { ScheduleProvider } from "../context/ScheduleContext";
+import { SwapWorkbenchProvider } from "../context/SwapWorkbenchContext";
+import { ToastProvider } from "../context/ToastContext";
 
 type MobileView = "search" | "schedule" | "insights";
+
+const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const MOBILE_TABS: { id: MobileView; label: string }[] = [
   { id: "search", label: "Search" },
@@ -24,22 +34,6 @@ function Disclaimers() {
   );
 }
 
-/** Insights placeholder shown on mobile until the analyze phase lands. */
-function InsightsPlaceholder() {
-  return (
-    <section
-      aria-label="Schedule insights"
-      className="rounded-2xl border border-line bg-panel p-5"
-    >
-      <h2 className="text-base font-semibold text-ink-primary">Insights</h2>
-      <p className="mt-1 text-sm text-ink-secondary">
-        Risk score, factor breakdown, commute warnings, and expected GPA appear here once you build
-        a schedule — the backend analysis connection arrives with the analyze phase.
-      </p>
-    </section>
-  );
-}
-
 /**
  * Single-page planning workspace shell.
  * - Desktop (≥1200px): three columns — search sidebar, hero/selection, workspace.
@@ -50,35 +44,76 @@ function InsightsPlaceholder() {
 export default function PlannerPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>("schedule");
+  const searchDrawerRef = useRef<HTMLDivElement>(null);
+  const searchCloseRef = useRef<HTMLButtonElement>(null);
 
-  // Close the drawer on Escape (keyboard users; PRD §12.1).
+  // Trap focus in the tablet search drawer, close on Escape, and restore focus
+  // to the control that opened it (PRD §12.1, §12.4).
   useEffect(() => {
     if (!searchOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    searchCloseRef.current?.focus();
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setSearchOpen(false);
+      if (event.key === "Escape") {
+        setSearchOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const drawer = searchDrawerRef.current;
+      if (!drawer) return;
+      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+        (element) => !element.hasAttribute("disabled"),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !drawer.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previous?.focus?.();
+    };
   }, [searchOpen]);
 
   return (
     <ScheduleProvider>
+      <MapSelectionProvider>
+      <SwapWorkbenchProvider>
+      <ProfessorDrawerProvider>
+      <ToastProvider>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-panel focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-maroon focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+      <div className="print:hidden">
       <div className="flex min-h-dvh flex-col bg-warm text-ink-primary">
         <AppHeader onOpenSearch={() => setSearchOpen(true)} />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Desktop three-column shell */}
         <div className="mx-auto hidden max-w-[1800px] lg:grid lg:h-[calc(100dvh-4rem-2.75rem)] lg:grid-cols-[290px_minmax(0,1.02fr)_minmax(0,1fr)] lg:gap-5 lg:px-6 lg:py-5 xl:px-8">
           <aside className="min-h-0 overflow-hidden">
             <SearchSidebar />
           </aside>
-          <div className="min-h-0 space-y-5 overflow-y-auto pr-1">
+          <div className="min-h-0 space-y-5 overflow-y-auto pr-1 hl-scroll">
             <HeroPanel />
             <EmptyState />
           </div>
-          <div className="min-h-0 space-y-5 overflow-y-auto">
-            <CampusMapPanel />
-            <WeeklySchedulePanel />
+          <div className="min-h-0 space-y-5 overflow-y-auto hl-scroll">
+            <CampusMap />
+            <WeeklyCalendar showDemoPicker />
+            <RiskOverview />
+            <StressTest />
           </div>
         </div>
 
@@ -86,9 +121,11 @@ export default function PlannerPage() {
         <div className="mx-auto hidden max-w-6xl space-y-5 px-5 py-5 md:block lg:hidden">
           <HeroPanel compact />
           <div className="grid gap-5 md:grid-cols-2">
-            <CampusMapPanel />
-            <WeeklySchedulePanel />
+            <CampusMap />
+            <WeeklyCalendar showDemoPicker />
           </div>
+          <RiskOverview />
+          <StressTest />
           <EmptyState />
         </div>
 
@@ -98,12 +135,14 @@ export default function PlannerPage() {
           {mobileView === "schedule" ? (
             <>
               <HeroPanel compact />
-              <WeeklySchedulePanel />
+              <WeeklyCalendar showDemoPicker />
+              <CampusMap />
             </>
           ) : null}
           {mobileView === "insights" ? (
             <>
-              <InsightsPlaceholder />
+              <RiskOverview />
+              <StressTest />
               <EmptyState />
             </>
           ) : null}
@@ -121,9 +160,13 @@ export default function PlannerPage() {
             className="absolute inset-0 h-full w-full bg-ink-primary/40"
             onClick={() => setSearchOpen(false)}
           />
-          <aside className="relative h-full w-80 max-w-[85vw] overflow-y-auto bg-warm p-3 shadow-2xl">
+          <aside
+            ref={searchDrawerRef}
+            className="relative h-full w-80 max-w-[85vw] overflow-y-auto border-r border-line bg-warm p-3 shadow-2xl hl-scroll"
+          >
             <SearchSidebar />
             <button
+              ref={searchCloseRef}
               type="button"
               onClick={() => setSearchOpen(false)}
               className="absolute right-5 top-5 rounded-md bg-panel p-2 text-ink-secondary shadow hover:text-ink-primary"
@@ -148,7 +191,7 @@ export default function PlannerPage() {
             type="button"
             aria-pressed={mobileView === tab.id}
             onClick={() => setMobileView(tab.id)}
-            className={`px-3 py-3 text-xs font-semibold ${
+            className={`px-3 py-3 text-xs font-semibold transition-colors ${
               mobileView === tab.id
                 ? "bg-soft-maroon text-maroon"
                 : "text-ink-secondary hover:text-ink-primary"
@@ -161,6 +204,12 @@ export default function PlannerPage() {
 
       <HelpButton />
       </div>
+      </div>
+      <PrintSchedule />
+      </ToastProvider>
+      </ProfessorDrawerProvider>
+      </SwapWorkbenchProvider>
+      </MapSelectionProvider>
     </ScheduleProvider>
   );
 }

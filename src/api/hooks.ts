@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiGet, apiPost } from "./client";
 import { queryKeys } from "./queryKeys";
+import { MAX_CRNS } from "../lib/schedule";
 import type {
   AnalyzeRequest,
   AnalyzeResponse,
@@ -69,6 +70,21 @@ export function useAnalyze() {
   return useMutation({
     mutationKey: queryKeys.analyze,
     mutationFn: (body: AnalyzeRequest) => apiPost<AnalyzeResponse>("/analyze", body),
+  });
+}
+
+/**
+ * Auto-run analysis for the ordered URL CRNs. Disabled below two selections so
+ * a single section never triggers a request; the URL already caps at 12. The
+ * key includes the ordered CRN list, so a schedule change requests a fresh
+ * analysis and cached results for other schedules are not reused.
+ */
+export function useAnalysis(crns: string[]) {
+  return useQuery({
+    queryKey: queryKeys.analysis(crns),
+    queryFn: ({ signal }) => apiPost<AnalyzeResponse>("/analyze", { crns }, { signal }),
+    enabled: crns.length >= 2 && crns.length <= MAX_CRNS,
+    retry: false,
   });
 }
 

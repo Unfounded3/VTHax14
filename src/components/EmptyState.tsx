@@ -1,3 +1,6 @@
+import { useSchedule } from "../context/ScheduleContext";
+import DemoPicker from "./DemoPicker";
+
 const STEPS = [
   {
     title: "Search",
@@ -13,24 +16,23 @@ const STEPS = [
   },
 ] as const;
 
-const DEMO_PLACEHOLDERS = [
-  "Balanced schedule",
-  "The wall of pain",
-  "Swap demo",
-] as const;
-
 /**
- * Empty-schedule guidance (PRD §11.2). Demo buttons are intentionally disabled:
- * real demo CRNs must come from `GET /api/demo/schedules` — never hardcoded here.
+ * Empty-schedule guidance (PRD §11.2). Demo buttons load real CRNs from
+ * `GET /api/demo/schedules` via DemoPicker — never hardcoded here. It renders
+ * only while the schedule is empty so onboarding copy and its demo picker do
+ * not linger once a plan exists.
  */
 export default function EmptyState() {
+  const { crns } = useSchedule();
+  if (crns.length > 0) return null;
+
   return (
-    <div className="rounded-2xl border border-line bg-panel p-5">
+    <div className="rounded-2xl border border-line bg-panel p-5 shadow-card">
       <ol className="grid gap-3 sm:grid-cols-3">
         {STEPS.map((step, index) => (
           <li
             key={step.title}
-            className="rounded-xl border border-line bg-warm px-4 py-3"
+            className="rounded-xl border border-line bg-warm px-4 py-3 shadow-sm transition-colors hover:border-maroon/30"
           >
             <p className="flex items-center gap-2 text-sm font-semibold text-ink-primary">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-maroon text-xs font-bold text-white">
@@ -43,26 +45,8 @@ export default function EmptyState() {
         ))}
       </ol>
 
-      <div className="mt-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-secondary">
-          Or start from a demo schedule
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {DEMO_PLACEHOLDERS.map((label) => (
-            <button
-              key={label}
-              type="button"
-              disabled
-              title="Demo schedules load from the API in a later phase"
-              className="cursor-not-allowed rounded-lg border border-maroon/40 bg-soft-maroon px-3.5 py-2 text-sm font-medium text-maroon disabled:opacity-60"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-ink-secondary">
-          Demo schedules load from the API in a later phase.
-        </p>
+      <div className="mt-4 border-t border-line pt-4">
+        <DemoPicker title="Or start from a demo schedule" />
       </div>
     </div>
   );

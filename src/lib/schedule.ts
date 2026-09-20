@@ -45,3 +45,15 @@ export function addCrn(crns: string[], crn: string): string[] {
 export function removeCrn(crns: string[], crn: string): string[] {
   return crns.filter((existing) => existing !== crn);
 }
+
+/**
+ * Total credits for cached selected sections only. Sections whose details are
+ * unavailable are excluded by the caller; this never estimates or fabricates
+ * credits.
+ */
+export function sumCredits(items: readonly { credits: number }[]): number {
+  return items.reduce(
+    (total, item) => total + (Number.isFinite(item.credits) ? item.credits : 0),
+    0,
+  );
+}

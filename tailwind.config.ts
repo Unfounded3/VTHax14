@@ -24,6 +24,10 @@ export default {
       fontFamily: {
         sans: ['"Inter"', '"Source Sans 3"', "system-ui", "-apple-system", '"Segoe UI"', "sans-serif"],
       },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        "card-lg": "var(--shadow-card-lg)",
+      },
     },
   },
   plugins: [],

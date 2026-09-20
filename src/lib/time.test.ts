@@ -8,6 +8,7 @@ import {
   formatMinutes,
   formatTimeLabel,
   formatWeekdayShort,
+  getEventLayout,
   getVisibleDays,
   getVisibleRange,
   snapDownToStep,
@@ -136,5 +137,35 @@ describe("formatWeekdayShort and formatTimeLabel", () => {
     expect(formatTimeLabel(8 * 60)).toBe("8 AM");
     expect(formatTimeLabel(12 * 60)).toBe("12 PM");
     expect(formatTimeLabel(13 * 60 + 30)).toBe("1:30 PM");
+  });
+});
+
+describe("getEventLayout", () => {
+  const range = { startMin: DEFAULT_VISIBLE_START, endMin: DEFAULT_VISIBLE_END };
+
+  it("positions a meeting from its documented start and end minutes", () => {
+    const layout = getEventLayout(610, 700, range);
+    // Range is 480–1080 (600 minutes). 610 is 130 minutes in; 90 minutes tall.
+    expect(layout.topPercent).toBeCloseTo((130 / 600) * 100, 5);
+    expect(layout.heightPercent).toBeCloseTo((90 / 600) * 100, 5);
+  });
+
+  it("places an event at the very top when it starts at the range start", () => {
+    const layout = getEventLayout(DEFAULT_VISIBLE_START, DEFAULT_VISIBLE_START + 60, range);
+    expect(layout.topPercent).toBe(0);
+    expect(layout.heightPercent).toBeCloseTo(10, 5);
+  });
+
+  it("tracks an expanded visible range", () => {
+    const expanded = { startMin: 7 * 60, endMin: 20 * 60 };
+    const layout = getEventLayout(7 * 60, 8 * 60, expanded);
+    expect(layout.topPercent).toBe(0);
+    expect(layout.heightPercent).toBeCloseTo((60 / (13 * 60)) * 100, 5);
+  });
+
+  it("clamps values to the visible range", () => {
+    const layout = getEventLayout(0, 24 * 60, range);
+    expect(layout.topPercent).toBe(0);
+    expect(layout.heightPercent).toBe(100);
   });
 });

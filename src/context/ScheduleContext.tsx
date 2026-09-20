@@ -10,6 +10,14 @@ import {
 } from "react";
 import type { Section } from "../api/types";
 import { useScheduleUrl } from "../hooks/useScheduleUrl";
+import { replaceCrnAtSameIndex } from "../lib/swap";
+
+/** Prefilled `swap_demo` payload. UI state only; no swap request is made. */
+export interface DemoSwapDraft {
+  currentCrns: string[];
+  dropCrn: string;
+  addCrn: string;
+}
 
 export interface ScheduleState {
   /** Ordered, de-duplicated CRNs parsed from the URL. Canonical selection. */
@@ -32,12 +40,23 @@ export interface ScheduleState {
   addSection: (section: Section) => void;
   /** Remove from the URL and prune cached details. */
   removeCrn: (crn: string) => void;
+  /** Replace the whole selection (e.g. loading a demo) and prune the cache. */
+  setSchedule: (crns: string[]) => void;
+  /**
+   * Apply a confirmed swap: replace `dropCrn` with `addCrn` at the exact same
+   * URL index, then prune cache entries that are no longer selected. The caller
+   * is responsible for having confirmed against an authoritative backend result.
+   */
+  applySwap: (dropCrn: string, addCrn: string) => void;
   /** Clear the URL selection and the in-memory cache. */
   clear: () => void;
   /** Cache one full Section (e.g. from search results). */
   registerSection: (section: Section) => void;
   /** Cache many full Sections. */
   registerSections: (sections: Section[]) => void;
+  /** Prefilled swap-demo payload; presentation state only. */
+  demoSwapDraft: DemoSwapDraft | null;
+  setDemoSwapDraft: (draft: DemoSwapDraft | null) => void;
 }
 
 const ScheduleContext = createContext<ScheduleState | null>(null);
@@ -54,10 +73,12 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     isFull,
     addCrn,
     removeCrn: removeUrlCrn,
+    setCrns,
     clear: clearUrl,
   } = useScheduleUrl();
 
   const [sectionsByCrn, setSectionsByCrn] = useState<Record<string, Section>>({});
+  const [demoSwapDraft, setDemoSwapDraft] = useState<DemoSwapDraft | null>(null);
 
   const registerSections = useCallback((sections: Section[]) => {
     if (sections.length === 0) return;
@@ -106,6 +127,36 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     setSectionsByCrn((previous) => (Object.keys(previous).length === 0 ? previous : {}));
   }, [clearUrl]);
 
+  const setSchedule = useCallback(
+    (next: string[]) => {
+      setCrns(next);
+      // Keep only cached sections that remain selected; demo CRNs arrive without
+      // Section objects and stay in `unavailableCrns` until search registers them.
+      setSectionsByCrn((previous) => {
+        const keep = new Set(next);
+        const retained: Record<string, Section> = {};
+        let changed = false;
+        for (const key of Object.keys(previous)) {
+          const section = previous[key];
+          if (keep.has(key) && section) {
+            retained[key] = section;
+          } else {
+            changed = true;
+          }
+        }
+        return changed ? retained : previous;
+      });
+    },
+    [setCrns],
+  );
+
+  const applySwap = useCallback(
+    (dropCrn: string, addCrn: string) => {
+      setSchedule(replaceCrnAtSameIndex(crns, dropCrn, addCrn));
+    },
+    [crns, setSchedule],
+  );
+
   const selectedSections = useMemo(
     () => crns.map((crn) => sectionsByCrn[crn]).filter((section): section is Section => Boolean(section)),
     [crns, sectionsByCrn],
@@ -126,9 +177,13 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       addCrn,
       addSection,
       removeCrn,
+      setSchedule,
+      applySwap,
       clear,
       registerSection,
       registerSections,
+      demoSwapDraft,
+      setDemoSwapDraft,
     }),
     [
       crns,
@@ -139,9 +194,12 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       addCrn,
       addSection,
       removeCrn,
+      setSchedule,
+      applySwap,
       clear,
       registerSection,
       registerSections,
+      demoSwapDraft,
     ],
   );
 

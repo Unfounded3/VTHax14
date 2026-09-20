@@ -13,6 +13,8 @@ export interface ScheduleUrlState {
   crns: string[];
   addCrn: (crn: string) => void;
   removeCrn: (crn: string) => void;
+  /** Replace the whole selection (e.g. loading a demo schedule). */
+  setCrns: (crns: string[]) => void;
   clear: () => void;
   isFull: boolean;
 }
@@ -49,7 +51,11 @@ export function useScheduleUrl(): ScheduleUrlState {
 
   const addCrn = useCallback((crn: string) => write(addToList(crns, crn)), [crns, write]);
   const removeCrn = useCallback((crn: string) => write(removeFromList(crns, crn)), [crns, write]);
+  const setCrns = useCallback(
+    (next: string[]) => write(parseCrnParam(serializeCrns(next))),
+    [write],
+  );
   const clear = useCallback(() => write([]), [write]);
 
-  return { crns, addCrn, removeCrn, clear, isFull: crns.length >= MAX_CRNS };
+  return { crns, addCrn, removeCrn, setCrns, clear, isFull: crns.length >= MAX_CRNS };
 }

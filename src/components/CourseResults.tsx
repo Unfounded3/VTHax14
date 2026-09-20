@@ -76,7 +76,7 @@ export default function CourseResults({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-3 rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-ink-primary hover:bg-warm"
+          className="mt-3 rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-ink-primary transition-colors hover:bg-warm"
         >
           Retry
         </button>
@@ -95,7 +95,7 @@ export default function CourseResults({
           <button
             type="button"
             onClick={onClearFilters}
-            className="mt-3 rounded-lg border border-line bg-panel px-3 py-1.5 text-xs font-semibold text-ink-primary hover:bg-soft-maroon"
+            className="mt-3 rounded-lg border border-line bg-panel px-3 py-1.5 text-xs font-semibold text-ink-primary transition-colors hover:bg-soft-maroon"
           >
             Clear filters
           </button>
@@ -115,12 +115,12 @@ export default function CourseResults({
         {courses.map((group) => {
           const isCollapsed = collapsed.has(group.course_id);
           return (
-            <li key={group.course_id} className="overflow-hidden rounded-xl border border-line">
+            <li key={group.course_id} className="overflow-hidden rounded-xl border border-line shadow-sm">
               <button
                 type="button"
                 onClick={() => toggleGroup(group.course_id)}
                 aria-expanded={!isCollapsed}
-                className="flex w-full items-center justify-between gap-2 bg-warm px-3 py-2 text-left hover:bg-soft-maroon"
+                className="flex w-full items-center justify-between gap-2 bg-warm px-3 py-2 text-left transition-colors hover:bg-soft-maroon"
               >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-ink-primary">

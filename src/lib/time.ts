@@ -152,3 +152,31 @@ export function formatTimeLabel(minutes: number): string {
   const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
   return mins === 0 ? `${hours12} ${period}` : `${hours12}:${String(mins).padStart(2, "0")} ${period}`;
 }
+
+export interface EventLayout {
+  /** Distance from the top of the grid, as a percentage of the visible range. */
+  topPercent: number;
+  /** Event height, as a percentage of the visible range. */
+  heightPercent: number;
+}
+
+function clampPercent(value: number): number {
+  return Math.min(100, Math.max(0, value));
+}
+
+/**
+ * Percentage placement of a meeting within a visible range. Pure display math:
+ * meetings are positioned directly from documented `start_min`/`end_min`, with
+ * no overlap or conflict inference.
+ */
+export function getEventLayout(
+  startMin: number,
+  endMin: number,
+  range: Pick<VisibleRange, "startMin" | "endMin">,
+): EventLayout {
+  const span = Math.max(range.endMin - range.startMin, 1);
+  return {
+    topPercent: clampPercent(((startMin - range.startMin) / span) * 100),
+    heightPercent: clampPercent(((endMin - startMin) / span) * 100),
+  };
+}

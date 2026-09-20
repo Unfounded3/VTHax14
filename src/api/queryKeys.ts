@@ -10,6 +10,8 @@ export const queryKeys = {
   coursesSearch: (params: CourseSearchParams) => ["courses", "search", params] as const,
   buildingsMatrix: (includeMeta: boolean) => ["buildings", "matrix", { includeMeta }] as const,
   analyze: ["analyze"] as const,
+  /** Keyed by ordered CRN list so a schedule change produces a new analysis. */
+  analysis: (crns: string[]) => ["analyze", crns] as const,
   swap: ["swap"] as const,
   stress: ["stress"] as const,
   professorVibes: (surname: string) => ["professors", surname, "vibes"] as const,

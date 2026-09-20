@@ -111,17 +111,15 @@ export default function SearchSidebar() {
     });
   }, [search.data]);
 
-  // Hydrate the section cache for selected CRNs whenever search results happen
-  // to include full documented Section objects. This is the only place selected
-  // details become available; no section-by-CRN endpoint exists.
+  // Cache every full documented Section returned by search so (a) selected CRNs
+  // can be hydrated and (b) the swap workbench can offer same-course
+  // alternatives. No section-by-CRN endpoint exists, so search results are the
+  // only source of Section objects. The cache is in-memory only.
   useEffect(() => {
     if (!search.data) return;
-    const selected = new Set(crns);
-    const available = search.data.courses
-      .flatMap((group) => group.sections)
-      .filter((section) => selected.has(section.crn));
+    const available = search.data.courses.flatMap((group) => group.sections);
     if (available.length > 0) registerSections(available);
-  }, [search.data, crns, registerSections]);
+  }, [search.data, registerSections]);
 
   const filteredCourses = useMemo(
     () =>
@@ -154,9 +152,9 @@ export default function SearchSidebar() {
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-line bg-panel">
+    <div className="flex h-full flex-col rounded-2xl border border-line bg-panel shadow-card">
       <div className="border-b border-line p-4">
-        <p className="flex items-center gap-2 rounded-lg bg-maroon px-3 py-2 text-sm font-semibold text-white">
+        <p className="flex items-center gap-2 rounded-lg bg-maroon px-3 py-2 text-sm font-semibold tracking-wide text-white shadow-sm">
           <svg
             viewBox="0 0 24 24"
             className="h-4 w-4"
@@ -173,7 +171,7 @@ export default function SearchSidebar() {
         </p>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4 hl-scroll">
         <form onSubmit={handleSubmit}>
           <FieldLabel htmlFor="sb-search">Search for a course</FieldLabel>
           <input
@@ -185,11 +183,11 @@ export default function SearchSidebar() {
               setSubmittedQuery(null);
             }}
             placeholder="e.g., CS 2104, MATH 2534"
-            className="mt-1.5 w-full rounded-lg border border-line bg-warm px-3 py-2 text-sm placeholder:text-ink-secondary"
+            className="mt-1.5 w-full rounded-lg border border-line bg-warm px-3 py-2 text-sm transition-colors placeholder:text-ink-secondary focus:border-maroon/50"
           />
           <button
             type="submit"
-            className="mt-2 w-full rounded-lg bg-maroon px-4 py-2.5 text-sm font-semibold text-white hover:bg-maroon-dark"
+            className="mt-2 w-full rounded-lg bg-maroon px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-maroon-dark active:bg-maroon-dark"
           >
             Search Classes
           </button>
@@ -259,7 +257,7 @@ export default function SearchSidebar() {
           />
         </div>
 
-        <details className="group rounded-lg border border-line">
+        <details className="group rounded-lg border border-line bg-warm/50">
           <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-medium text-ink-primary">
             More filters
             <span aria-hidden="true" className="text-ink-secondary transition-transform group-open:rotate-90">
@@ -272,18 +270,26 @@ export default function SearchSidebar() {
           </p>
         </details>
 
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-line bg-warm px-3 py-2 text-xs">
-          <span className="font-medium text-ink-primary">
-            Selected {crns.length} of {MAX_CRNS}
-          </span>
-          <button
-            type="button"
-            onClick={clear}
-            disabled={crns.length === 0}
-            className="rounded-md border border-line bg-panel px-2.5 py-1 font-semibold text-ink-primary hover:bg-soft-maroon disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Clear
-          </button>
+        <div className="rounded-lg border border-line bg-warm px-3 py-2 text-xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-medium text-ink-primary">
+              Selected {crns.length} of {MAX_CRNS}
+            </span>
+            <button
+              type="button"
+              onClick={clear}
+              disabled={crns.length === 0}
+              className="rounded-md border border-line bg-panel px-2.5 py-1 font-semibold text-ink-primary transition-colors hover:bg-soft-maroon disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Clear
+            </button>
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-maroon transition-[width] duration-300"
+              style={{ width: `${Math.min(100, (crns.length / MAX_CRNS) * 100)}%` }}
+            />
+          </div>
         </div>
 
         <CourseResults

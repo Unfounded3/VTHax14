@@ -1,5 +1,6 @@
 import type { Section } from "../api/types";
 import { formatMeetingSummary, formatModality } from "../lib/time";
+import InstructorLinks from "./InstructorLinks";
 
 interface SectionCardProps {
   section: Section;
@@ -26,14 +27,18 @@ function meetingLabel(section: Section): string {
 
 /** One section row with add/remove, meeting summary, and seat snapshot copy. */
 export default function SectionCard({ section, selected, disabled, onToggle }: SectionCardProps) {
-  const instructor = section.instructor_names.join(", ") || "TBA";
-
   return (
-    <li className="rounded-lg border border-line bg-panel p-3">
+    <li
+      className={`rounded-xl border p-3 shadow-sm transition-colors ${
+        selected ? "border-maroon/50 bg-soft-maroon/40" : "border-line bg-panel hover:border-maroon/30"
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-mono text-xs text-ink-secondary">CRN {section.crn}</p>
-          <p className="truncate text-sm font-medium text-ink-primary">{instructor}</p>
+          <p className="truncate text-sm font-medium text-ink-primary">
+            <InstructorLinks names={section.instructor_names} />
+          </p>
           <p className="mt-0.5 text-xs text-ink-secondary">{meetingLabel(section)}</p>
           <p className="text-xs text-ink-secondary">{locationLabel(section)}</p>
           <p
@@ -50,7 +55,7 @@ export default function SectionCard({ section, selected, disabled, onToggle }: S
           aria-pressed={selected}
           disabled={!selected && disabled}
           onClick={() => onToggle(section)}
-          className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold ${
+          className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors ${
             selected
               ? "border border-maroon bg-soft-maroon text-maroon hover:bg-maroon hover:text-white"
               : "bg-maroon text-white hover:bg-maroon-dark disabled:cursor-not-allowed disabled:opacity-50"

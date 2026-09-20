@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_CRNS, addCrn, parseCrnParam, removeCrn, serializeCrns } from "./schedule";
+import { MAX_CRNS, addCrn, parseCrnParam, removeCrn, serializeCrns, sumCredits } from "./schedule";
 
 describe("parseCrnParam", () => {
   it("returns an empty list for missing or blank values", () => {
@@ -63,5 +63,19 @@ describe("removeCrn", () => {
 
   it("is a no-op for an unselected CRN", () => {
     expect(removeCrn(["90001"], "90099")).toEqual(["90001"]);
+  });
+});
+
+describe("sumCredits", () => {
+  it("sums cached section credits", () => {
+    expect(sumCredits([{ credits: 3 }, { credits: 4 }, { credits: 1.5 }])).toBe(8.5);
+  });
+
+  it("returns 0 for an empty selection", () => {
+    expect(sumCredits([])).toBe(0);
+  });
+
+  it("ignores non-finite credits instead of fabricating a value", () => {
+    expect(sumCredits([{ credits: 3 }, { credits: Number.NaN }])).toBe(3);
   });
 });
