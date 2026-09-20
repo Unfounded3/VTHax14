@@ -17,6 +17,8 @@ are live. ``/api/analyze`` and ``/api/swap`` validate first, then call
 compatibility path (same ``AnalyzeResponse`` contract); default is off.
 ``/api/stress`` reuses that same analysis path and adds the PRD 6.5 penalty.
 Pipeline scripts live in ``scripts/`` and are never imported by this module.
+Optional ANS well-known documents are served from ``sponsors/ans`` with no
+outbound calls.
 """
 
 from __future__ import annotations
@@ -57,6 +59,7 @@ from models import (
 from risk import analyze as analyze_schedule
 from risk import miss_week_stress, professor_vibes
 from schedule import find_meeting_conflicts
+from sponsors.identity import agent_card_payload, registration_payload
 from stub_analyze import build_stub_analysis
 
 logger = logging.getLogger("hokielens")
@@ -339,6 +342,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/demo/schedules", response_model=DemoSchedulesResponse, tags=["demo"])
     def demo_schedules(ctx: Ctx) -> DemoSchedulesResponse:
         return ctx.demo_schedules
+
+    # ANS protocol card. Static identity, no keys, no outbound calls. Hidden
+    # from OpenAPI so the eight-route frontend contract is unchanged.
+    @app.get("/.well-known/agent-card.json", include_in_schema=False)
+    def ans_agent_card() -> JSONResponse:
+        return JSONResponse(agent_card_payload())
+
+    @app.get("/.well-known/ans/agent.json", include_in_schema=False)
+    def ans_agent_alias() -> JSONResponse:
+        return JSONResponse(agent_card_payload())
+
+    @app.get("/.well-known/ans/registration.json", include_in_schema=False)
+    def ans_registration() -> JSONResponse:
+        return JSONResponse(registration_payload())
 
     return app
 

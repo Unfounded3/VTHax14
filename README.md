@@ -121,6 +121,22 @@ How to reproduce each state locally:
 - Conflict: choose two sections whose meetings overlap and read every conflict in the error list.
 - API error: stop the backend (or block `/api`) and confirm each surface shows a retryable error.
 
+## Sponsor prizes
+
+The planner UI is unchanged. Prize add-ons live in `backend/sponsors/` and are
+documented in `backend/README.md`. From `backend/`, `python -m sponsors.demo`
+is the two-minute script.
+
+- **Deloitte x Databricks:** import `backend/sponsors/databricks/HokieLens_Student_Impact.py`
+  and show easy **41** vs brutal **84**, then the **49 -> 19** swap.
+- **Gemini:** `python -m sponsors.explain --fixture easy --gemini` (needs
+  `HOKIELENS_GEMINI=1` and `GEMINI_API_KEY`). Not a chatbot; it only rewrites
+  `/api/analyze` facts. Optional `POST /api/explain` exists on
+  `uvicorn sponsors.gateway:app`, not on the core API.
+- **GoDaddy ANS:** serve `GET /.well-known/agent-card.json` from `uvicorn main:app`.
+  Publish the `_ans` TXT record from `backend/sponsors/ans/dns-records.example.txt`
+  on the public domain.
+
 ## Disclaimer
 
 HokieLens is a student-built planning tool and is not an official Virginia Tech registration
