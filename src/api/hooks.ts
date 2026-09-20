@@ -10,8 +10,6 @@ import type {
   CourseSearchResponse,
   DemoSchedulesResponse,
   HealthResponse,
-  StressRequest,
-  StressResponse,
   SwapRequest,
   SwapResponse,
   VibesResponse,
