@@ -1,21 +1,14 @@
 import { useCourseSearch } from "../context/CourseSearchContext";
+import { useSchedule } from "../context/ScheduleContext";
 import EmptyState from "./EmptyState";
 import HeroPanel from "./HeroPanel";
 import SearchResultsPanel from "./SearchResultsPanel";
+import SelectedCourseWorkspace from "./SelectedCourseWorkspace";
 
-/**
- * Desktop center column. Shows the Burruss hero and onboarding steps until the
- * person searches, then swaps them for the course results.
- */
 export default function CenterPanel() {
   const { isSearchActive } = useCourseSearch();
-
+  const { crns } = useSchedule();
   if (isSearchActive) return <SearchResultsPanel />;
-
-  return (
-    <>
-      <HeroPanel />
-      <EmptyState />
-    </>
-  );
+  if (crns.length > 0) return <SelectedCourseWorkspace />;
+  return <><HeroPanel /><EmptyState /></>;
 }
