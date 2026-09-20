@@ -13,6 +13,5 @@ export const queryKeys = {
   /** Keyed by ordered CRN list so a schedule change produces a new analysis. */
   analysis: (crns: string[]) => ["analyze", crns] as const,
   swap: ["swap"] as const,
-  stress: ["stress"] as const,
   professorVibes: (surname: string) => ["professors", surname, "vibes"] as const,
 };
