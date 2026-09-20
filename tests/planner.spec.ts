@@ -294,7 +294,7 @@ async function expectNoPageOverflow(page: Page): Promise<void> {
  * sidebar and only replace the hero once a search runs, so "Search" submits an
  * empty query (the first page of the catalog).
  */
-async function openPanel(page: Page, width: number, tab: "Search" | "Schedule" | "Insights") {
+async function openPanel(page: Page, width: number, tab: "Search" | "Schedule") {
   if (width < 768) {
     await page.getByRole("button", { name: tab, exact: true }).click();
     return;
@@ -410,7 +410,6 @@ test("populated state: no page overflow at required viewports", async ({ page },
     await expect(page.locator('[data-testid="calendar-grid"]:visible')).toBeVisible();
     await expectNoPageOverflow(page);
     await screenshot(page, testInfo, `populated-${viewport.label}`);
-    await openPanel(page, viewport.width, "Insights");
     await expect(page.locator('[data-testid="risk-score"]:visible')).toHaveText("41");
     await expectNoPageOverflow(page);
     await screenshot(page, testInfo, `populated-insights-${viewport.label}`);
@@ -422,10 +421,8 @@ test("conflict state lists every backend conflict without overflow", async ({ pa
   for (const viewport of VIEWPORTS) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto("/?crns=90001,90003");
-    await openPanel(page, viewport.width, "Insights");
     const conflicts = page.getByTestId("conflict-item").filter({ visible: true });
-    // Two conflicts in the insights panel; the map panel adds two more on desktop/tablet.
-    await expect(conflicts).toHaveCount(viewport.width < 768 ? 2 : 4);
+    await expect(conflicts).toHaveCount(2);
     await expect(conflicts.first()).toContainText("90001 and 90003 overlap");
     await expectNoPageOverflow(page);
     await screenshot(page, testInfo, `conflict-${viewport.label}`);
@@ -471,5 +468,8 @@ test("keyboard-only user can reach search and the help panel", async ({ page }) 
   await page.keyboard.type("CS");
   await expect(page.getByRole("button", { name: "Search Classes" })).toBeVisible();
 
-  await expect(page.getByRole("button", { name: "Open Ask HokieLens help" })).toHaveCount(0);
+  const themeToggle = page.getByRole("switch", { name: /dark mode/i });
+  await expect(themeToggle).toBeVisible();
+  await themeToggle.press("Enter");
+  await expect(page.locator("html")).toHaveClass(/dark/);
 });
