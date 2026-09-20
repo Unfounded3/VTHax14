@@ -147,3 +147,38 @@ textarea:focus-visible,
     break-inside: avoid;
   }
 }
+
+
+/* Accessible dark theme: semantic tokens, not a color inversion. */
+html.dark {
+  color-scheme: dark;
+  --color-bg-warm: #111318;
+  --color-panel: #1a1d24;
+  --color-soft-maroon: #3a1c2a;
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #b6bcc8;
+  --color-border: #343a46;
+  --color-maroon: #d05a7e;
+  --color-maroon-dark: #f07a9b;
+  --color-orange: #ff9a4a;
+  --color-success: #45c58a;
+  --color-warning: #f3b45b;
+  --color-danger: #ff7474;
+  --color-info: #72a7ff;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px rgb(0 0 0 / 0.18);
+  --shadow-card-lg: 0 14px 34px -18px rgb(0 0 0 / 0.55);
+}
+
+html.dark .map-grid {
+  background-image:
+    linear-gradient(to right, rgb(52 58 70 / 0.72) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(52 58 70 / 0.72) 1px, transparent 1px),
+    radial-gradient(circle at 30% 28%, var(--color-soft-maroon), transparent 62%),
+    radial-gradient(circle at 76% 66%, rgb(255 154 74 / 0.09), transparent 55%);
+}
+
+html.dark .hero-sky {
+  background:
+    radial-gradient(120% 85% at 78% 8%, rgb(255 180 100 / 0.24), transparent 58%),
+    linear-gradient(165deg, #2b1220 0%, #531d35 48%, #7a3b22 120%);
+}
