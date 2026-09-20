@@ -47,7 +47,7 @@ export default function SelectedScheduleSummary() {
       ) : null}
 
       <p className="mt-3 text-xs text-ink-secondary">
-        Calendar, map, risk, stress, and swap tools remain available.
+        Calendar, map, overall risk, and section swaps remain available.
       </p>
     </section>
   );
