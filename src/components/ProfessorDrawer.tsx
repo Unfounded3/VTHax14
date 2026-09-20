@@ -264,20 +264,7 @@ export default function ProfessorDrawer({
               </p>
             </section>
 
-            <section className="rounded-xl border border-line bg-warm p-3 text-xs">
-              <h3 className="text-sm font-semibold text-ink-primary">Data notes</h3>
-              {query.data.data_notes.length > 0 ? (
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-ink-secondary" data-testid="professor-notes">
-                  {query.data.data_notes.map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-2 text-ink-secondary" data-testid="professor-notes-empty">
-                  No data notes were reported for this instructor.
-                </p>
-              )}
-            </section>
+
           </div>
         ) : null}
       </div>
