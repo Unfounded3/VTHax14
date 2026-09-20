@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import AppHeader from "../components/AppHeader";
 import HelpButton from "../components/HelpButton";
 import HeroPanel from "../components/HeroPanel";
+import CenterPanel from "../components/CenterPanel";
 import SearchSidebar from "../components/SearchSidebar";
 import EmptyState from "../components/EmptyState";
 import CampusMap from "../components/CampusMap";
@@ -9,6 +10,7 @@ import RiskOverview from "../components/RiskOverview";
 import StressTest from "../components/StressTest";
 import PrintSchedule from "../components/PrintSchedule";
 import WeeklyCalendar from "../components/WeeklyCalendar";
+import { CourseSearchProvider } from "../context/CourseSearchContext";
 import { MapSelectionProvider } from "../context/MapSelectionContext";
 import { ProfessorDrawerProvider } from "../context/ProfessorDrawerContext";
 import { ScheduleProvider } from "../context/ScheduleContext";
@@ -36,7 +38,8 @@ function Disclaimers() {
 
 /**
  * Single-page planning workspace shell.
- * - Desktop (≥1200px): three columns — search sidebar, hero/selection, workspace.
+ * - Desktop (≥1200px): three columns — search controls, hero/selection (replaced by
+ *   course results while a search is active), workspace.
  * - Tablet (768–1199px): search becomes an off-canvas drawer; workspace stays.
  * - Mobile (<768px): single column with bottom Search / Schedule / Insights nav.
  * All regions are static this phase: no API calls, selection, or analysis.
@@ -85,6 +88,7 @@ export default function PlannerPage() {
 
   return (
     <ScheduleProvider>
+      <CourseSearchProvider>
       <MapSelectionProvider>
       <SwapWorkbenchProvider>
       <ProfessorDrawerProvider>
@@ -103,11 +107,11 @@ export default function PlannerPage() {
         {/* Desktop three-column shell */}
         <div className="mx-auto hidden max-w-[1800px] lg:grid lg:h-[calc(100dvh-4rem-2.75rem)] lg:grid-cols-[290px_minmax(0,1.02fr)_minmax(0,1fr)] lg:gap-5 lg:px-6 lg:py-5 xl:px-8">
           <aside className="min-h-0 overflow-hidden">
-            <SearchSidebar />
+            <SearchSidebar showResults={false} />
           </aside>
+          {/* Hero + onboarding until the person searches, then course results. */}
           <div className="min-h-0 space-y-5 overflow-y-auto pr-1 hl-scroll">
-            <HeroPanel />
-            <EmptyState />
+            <CenterPanel />
           </div>
           <div className="min-h-0 space-y-5 overflow-y-auto hl-scroll">
             <CampusMap />
@@ -210,6 +214,7 @@ export default function PlannerPage() {
       </ProfessorDrawerProvider>
       </SwapWorkbenchProvider>
       </MapSelectionProvider>
+      </CourseSearchProvider>
     </ScheduleProvider>
   );
 }

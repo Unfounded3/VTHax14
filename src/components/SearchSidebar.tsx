@@ -1,16 +1,10 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ApiError } from "../api/errors";
-import { useCoursesSearch, useHealth } from "../api/hooks";
+import type { FormEvent } from "react";
+import { useHealth } from "../api/hooks";
+import { useCourseSearch } from "../context/CourseSearchContext";
 import { useSchedule } from "../context/ScheduleContext";
-import { useDebouncedValue } from "../hooks/useDebouncedValue";
-import {
-  COURSE_LEVELS,
-  collectSubjects,
-  filterCourses,
-  type CourseLevel,
-} from "../lib/courses";
+import { COURSE_LEVELS, type CourseLevel } from "../lib/courses";
 import { MAX_CRNS } from "../lib/schedule";
-import CourseResults from "./CourseResults";
+import ConnectedCourseResults from "./ConnectedCourseResults";
 
 function FieldLabel({ htmlFor, children }: { htmlFor: string; children: string }) {
   return (
@@ -60,95 +54,46 @@ function Toggle({ id, label, helper, checked = false, disabled = false, onChange
   );
 }
 
+interface SearchSidebarProps {
+  /**
+   * Render course results inside the sidebar. Desktop passes `false` because the
+   * center column shows results there; the tablet drawer and mobile Search tab
+   * keep the default so search still works without a center column.
+   */
+  showResults?: boolean;
+}
+
 /**
- * Course search sidebar.
- *
- * Uses only the documented `q`, `subject`, and `limit` parameters. Course-level
- * and open-seat filters are client-side. Selection is URL-backed via
- * `useSchedule`. Analysis is intentionally not requested here: a later phase
- * owns `POST /api/analyze` for schedules with at least two sections.
+ * Course search controls: query, subject, level, open-seat filter, and the
+ * selection counter. Search state lives in `CourseSearchContext` so results can
+ * be shown elsewhere (see `CenterPanel`).
  */
-export default function SearchSidebar() {
-  const { crns, addSection, removeCrn, clear, isFull, registerSections } = useSchedule();
+export default function SearchSidebar({ showResults = true }: SearchSidebarProps) {
+  const { crns, clear } = useSchedule();
   const health = useHealth();
+  const {
+    text,
+    setText,
+    submit,
+    subject,
+    setSubject,
+    level,
+    setLevel,
+    openOnly,
+    setOpenOnly,
+    subjects,
+    isSearchActive,
+    courses,
+    isPending,
+    isError,
+  } = useCourseSearch();
 
-  const [text, setText] = useState("");
-  const debouncedText = useDebouncedValue(text, 250);
-  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
-
-  // Auto-search at two characters; an explicit submit (including an empty one,
-  // which requests the first 20 groups) takes precedence.
-  const activeQuery =
-    submittedQuery !== null
-      ? submittedQuery
-      : debouncedText.trim().length >= 2
-        ? debouncedText.trim()
-        : null;
-
-  const [subject, setSubject] = useState("all");
-  const [level, setLevel] = useState<CourseLevel | "all">("all");
-  const [openOnly, setOpenOnly] = useState(false);
-
-  const params = useMemo(
-    () => ({
-      q: activeQuery ?? undefined,
-      subject: subject === "all" ? undefined : subject,
-      limit: 20,
-    }),
-    [activeQuery, subject],
-  );
-
-  const search = useCoursesSearch(params);
-
-  // Accumulate subjects seen so far so options stay stable as filters narrow results.
-  const [subjects, setSubjects] = useState<string[]>([]);
-  useEffect(() => {
-    if (!search.data) return;
-    setSubjects((previous) => {
-      const next = new Set(previous);
-      for (const value of collectSubjects(search.data.courses)) next.add(value);
-      return Array.from(next).sort();
-    });
-  }, [search.data]);
-
-  // Cache every full documented Section returned by search so (a) selected CRNs
-  // can be hydrated and (b) the swap workbench can offer same-course
-  // alternatives. No section-by-CRN endpoint exists, so search results are the
-  // only source of Section objects. The cache is in-memory only.
-  useEffect(() => {
-    if (!search.data) return;
-    const available = search.data.courses.flatMap((group) => group.sections);
-    if (available.length > 0) registerSections(available);
-  }, [search.data, registerSections]);
-
-  const filteredCourses = useMemo(
-    () =>
-      filterCourses(search.data?.courses ?? [], {
-        level: level === "all" ? null : level,
-        openOnly,
-      }),
-    [search.data, level, openOnly],
-  );
-
-  const hasFilters = subject !== "all" || level !== "all" || openOnly;
-  const errorMessage = search.isError
-    ? search.error instanceof ApiError
-      ? search.error.message
-      : "The course catalog did not respond."
-    : undefined;
   const termLabel = health.data?.term_id ?? (health.isError ? "Term unavailable" : "Loading term…");
+  const sectionCount = courses.reduce((total, group) => total + group.sections.length, 0);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmittedQuery(text.trim());
-  }
-
-  function handleClearFilters() {
-    setText("");
-    setSubmittedQuery(null);
-    setSubject("all");
-    setLevel("all");
-    setOpenOnly(false);
+    submit();
   }
 
   return (
@@ -178,10 +123,7 @@ export default function SearchSidebar() {
             id="sb-search"
             type="search"
             value={text}
-            onChange={(event) => {
-              setText(event.target.value);
-              setSubmittedQuery(null);
-            }}
+            onChange={(event) => setText(event.target.value)}
             placeholder="e.g., CS 2104, MATH 2534"
             className="mt-1.5 w-full rounded-lg border border-line bg-warm px-3 py-2 text-sm transition-colors placeholder:text-ink-secondary focus:border-maroon/50"
           />
@@ -292,21 +234,19 @@ export default function SearchSidebar() {
           </div>
         </div>
 
-        <CourseResults
-          courses={filteredCourses}
-          isPending={search.isPending}
-          isError={search.isError}
-          errorMessage={errorMessage}
-          hasFilters={hasFilters}
-          queryLabel={activeQuery ?? ""}
-          isSelected={(crn) => crns.includes(crn)}
-          isFull={isFull}
-          onToggleSection={(section) =>
-            crns.includes(section.crn) ? removeCrn(section.crn) : addSection(section)
-          }
-          onRetry={() => void search.refetch()}
-          onClearFilters={handleClearFilters}
-        />
+        {showResults ? (
+          <ConnectedCourseResults />
+        ) : (
+          <p className="text-xs text-ink-secondary" aria-live="polite">
+            {!isSearchActive
+              ? "Type a course (2+ characters) or press Search Classes. Results appear in the main panel."
+              : isPending
+                ? "Searching…"
+                : isError
+                  ? "Could not load courses. See the main panel."
+                  : `${courses.length} course${courses.length === 1 ? "" : "s"} · ${sectionCount} section${sectionCount === 1 ? "" : "s"} shown in the main panel.`}
+          </p>
+        )}
       </div>
     </div>
   );

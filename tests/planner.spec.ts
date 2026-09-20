@@ -292,6 +292,9 @@ async function expectNoPageOverflow(page: Page): Promise<void> {
 /**
  * Reveal a panel at the current breakpoint. Mobile uses the bottom navigation;
  * the 768–1023px tablet layout hides search behind a header-triggered drawer.
+ * At desktop widths (≥1024px) results live in the center column instead of the
+ * sidebar and only replace the hero once a search runs, so "Search" submits an
+ * empty query (the first page of the catalog).
  */
 async function openPanel(page: Page, width: number, tab: "Search" | "Schedule" | "Insights") {
   if (width < 768) {
@@ -300,6 +303,10 @@ async function openPanel(page: Page, width: number, tab: "Search" | "Schedule" |
   }
   if (tab === "Search" && width < 1024) {
     await page.getByRole("button", { name: "Search courses" }).click();
+    return;
+  }
+  if (tab === "Search") {
+    await page.getByRole("button", { name: "Search Classes" }).click();
   }
 }
 
@@ -323,9 +330,18 @@ test("happy path: demo, calendar, analysis, commute, stress, swap, share", async
   await stubApi(page);
 
   // 1. Open the planner. The startup catalog request hydrates section details.
+  //    Results stay out of the way (hero shown) until the person searches, then
+  //    they replace the hero in the center column.
   await page.goto("/");
   await expect(page.locator('[data-testid="schedule-summary"]:visible')).toContainText("Plan, adjust");
+  await expect(page.getByText("Burruss Hall").filter({ visible: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Add section 90001/ })).toBeHidden();
+  await page.getByRole("button", { name: "Search Classes" }).click();
+  await expect(page.getByRole("region", { name: "Course search results" })).toBeVisible();
+  await expect(page.getByText("Burruss Hall").filter({ visible: true })).toBeHidden();
   await expect(page.getByRole("button", { name: /Add section 90001/ })).toBeVisible();
+  await page.getByRole("button", { name: /Back to overview/ }).click();
+  await expect(page.getByText("Burruss Hall").filter({ visible: true })).toBeVisible();
 
   // 2. Load the brutal demo (CRNs come from GET /api/demo/schedules only).
   await page.getByRole("button", { name: "The wall of pain" }).first().click();

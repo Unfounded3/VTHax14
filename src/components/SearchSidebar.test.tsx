@@ -6,6 +6,7 @@ import { MemoryRouter, useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "../api/client";
 import type { CourseGroup, Section } from "../api/types";
 import { server } from "../test/msw/server";
+import { CourseSearchProvider } from "../context/CourseSearchContext";
 import { ScheduleProvider } from "../context/ScheduleContext";
 import SearchSidebar from "./SearchSidebar";
 
@@ -75,8 +76,10 @@ function renderSidebar(initialEntry = "/") {
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[initialEntry]}>
         <ScheduleProvider>
-          <SearchSidebar />
-          <LocationProbe />
+          <CourseSearchProvider>
+            <SearchSidebar />
+            <LocationProbe />
+          </CourseSearchProvider>
         </ScheduleProvider>
       </MemoryRouter>
     </QueryClientProvider>,
