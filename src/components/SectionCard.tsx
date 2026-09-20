@@ -1,6 +1,7 @@
 import type { Section } from "../api/types";
 import { formatMeetingSummary, formatModality } from "../lib/time";
 import InstructorLinks from "./InstructorLinks";
+import ProfessorSnapshot from "./ProfessorSnapshot";
 
 interface SectionCardProps {
   section: Section;
@@ -40,6 +41,7 @@ export default function SectionCard({ section, selected, disabled, onToggle }: S
             <InstructorLinks names={section.instructor_names} />
           </p>
           <p className="mt-0.5 text-xs text-ink-secondary">{meetingLabel(section)}</p>
+          <div className="mt-2"><ProfessorSnapshot names={section.instructor_names} /></div>
           <p className="text-xs text-ink-secondary">{locationLabel(section)}</p>
           <p
             className="mt-1 text-xs text-ink-secondary"
