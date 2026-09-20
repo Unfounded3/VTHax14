@@ -28,8 +28,6 @@ export type FactorType =
 export type CommuteVerdict = "comfortable" | "tight" | "impossible";
 export type WalkSource = "google_routes" | "manual_override" | "default_fallback";
 export type GpaExclusionReason = "pass_fail" | "no_grade_history";
-export type StressImpact = "low" | "medium" | "high";
-export type StressScenarioType = "miss_week";
 
 // ---------------------------------------------------------------------------
 // GET /api/health
@@ -48,7 +46,7 @@ export interface HealthResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Catalog shapes (GET /api/courses/search; reused inside analyze/swap/stress)
+// Catalog shapes (GET /api/courses/search; reused inside analyze/swap)
 // ---------------------------------------------------------------------------
 
 export interface SectionMeta {
