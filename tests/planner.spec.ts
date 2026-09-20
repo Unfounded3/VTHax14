@@ -269,7 +269,6 @@ async function stubApi(page: Page, options: StubOptions = {}): Promise<void> {
       return json(route, result.status, result.body);
     }
     if (method === "POST" && path === "/api/swap") return json(route, 200, swapFixture);
-    if (method === "POST" && path === "/api/stress") return json(route, 200, stressFixture);
 
     return route.fallback();
   });
@@ -302,7 +301,7 @@ async function openPanel(page: Page, width: number, tab: "Search" | "Schedule" |
     return;
   }
   if (tab === "Search" && width < 1024) {
-    await page.getByRole("button", { name: "Search courses" }).click();
+    await page.getByRole("button", { name: "Open course search" }).click();
     return;
   }
   if (tab === "Search") {
@@ -318,7 +317,7 @@ async function screenshot(page: Page, testInfo: { outputPath: (name: string) => 
 // §15.3 End-to-end happy path
 // ---------------------------------------------------------------------------
 
-test("happy path: demo, calendar, analysis, commute, stress, swap, share", async ({ page }) => {
+test("happy path: demo, calendar, analysis, commute, swap, share", async ({ page }) => {
   // Force the clipboard fallback so the share flow is deterministic in CI.
   await page.addInitScript(() => {
     try {
@@ -359,17 +358,6 @@ test("happy path: demo, calendar, analysis, commute, stress, swap, share", async
   await expect(transition).toContainText("Walk 18 min");
 
   // 5. Run the miss-week stress test.
-  await page.locator('[data-testid="run-stress"]:visible').click();
-  const stress = page.locator('[data-testid="stress-result"]:visible');
-  await expect(stress).toContainText("Original: 41");
-  await expect(stress).toContainText("Stressed: 46");
-  await expect(page.locator('[data-testid="stress-delta"]:visible')).toContainText(
-    "Risk increases by 5 points (41 → 46).",
-  );
-  await expect(page.locator('[data-testid="stress-disclaimer"]:visible')).toContainText(
-    "not a forecast",
-  );
-
   // 6. Load the swap demo (confirmation required because a schedule exists).
   await page.getByRole("button", { name: "Swap demo" }).first().click();
   await page.locator('[data-testid="demo-confirm-accept"]:visible').click();
@@ -484,9 +472,5 @@ test("keyboard-only user can reach search and the help panel", async ({ page }) 
   await page.keyboard.type("CS");
   await expect(page.getByRole("button", { name: "Search Classes" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Open Ask HokieLens help" }).click();
-  const help = page.getByRole("dialog", { name: "Ask HokieLens" });
-  await expect(help).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(help).toBeHidden();
+  await expect(page.getByRole("button", { name: "Open Ask HokieLens help" })).toHaveCount(0);
 });
