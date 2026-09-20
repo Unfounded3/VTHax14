@@ -33,7 +33,7 @@ export default function SelectedCourseWorkspace() {
     return <section aria-label="Selected courses" className="space-y-4 rounded-2xl border border-line bg-panel p-5 shadow-card"><header><p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-secondary">Selected courses</p><h2 className="mt-1 text-xl font-bold text-ink-primary">Your schedule</h2></header><ErrorState title="Schedule analysis unavailable" error={normalizeApiError(analysis.error)} onRetry={() => void analysis.refetch()} /><CourseCards sections={selectedSections} warnings={[]} /></section>;
   }
 
-  if (!analysis.data) return null;
+  if (!analysis.data) return <section aria-label="Selected courses" className="space-y-4 rounded-2xl border border-line bg-panel p-5 shadow-card"><header><p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-secondary">Selected courses</p><h2 className="mt-1 text-2xl font-extrabold tracking-tight text-ink-primary">{crns.length} section{crns.length === 1 ? "" : "s"}</h2></header><p className="text-sm text-ink-secondary">Add at least one more section to calculate overall schedule risk.</p><CourseCards sections={selectedSections} warnings={[]} /></section>;
   const data = analysis.data;
   const band = riskBand(data.risk_score);
 
@@ -73,5 +73,5 @@ function CourseCards({ sections, warnings, factors = [] }: { sections: import(".
 
 function CommuteSummary({ warnings }: { warnings: import("../api/types").CommuteWarning[] }) {
   if (warnings.length === 0) return null;
-  return <section aria-label="Commute warnings" className="rounded-xl border border-line bg-warm p-3"><h3 className="text-sm font-semibold text-ink-primary">Walking transitions</h3><ul className="mt-2 space-y-2">{warnings.map((warning, index) => <li key={`${warning.day}-${warning.from.crn}-${warning.to.crn}-summary-${index}`} className="text-xs text-ink-secondary"><strong className="text-ink-primary">{formatWeekdayShort(warning.day)} · {warning.from.crn} ({warning.from.building}) → {warning.to.crn} ({warning.to.building})</strong> · {warning.walk_min} min walk · {warning.gap_min} min gap · {warning.verdict}. {warning.detail}</li>)}</ul></section>;
+  return <section aria-label="Commute warnings" className="rounded-xl border border-line bg-warm p-3"><h3 className="text-sm font-semibold text-ink-primary">Walking transitions</h3><ul className="mt-2 space-y-2">{warnings.map((warning, index) => <li key={`${warning.day}-${warning.from.crn}-${warning.to.crn}-summary-${index}`} className="text-xs text-ink-secondary"><strong className="text-ink-primary">{formatWeekdayShort(warning.day)} · {warning.from.crn} ({warning.from.building}) → {warning.to.crn} ({warning.to.building})</strong> · {warning.walk_min} min walk · adjusted {warning.adjusted_walk_min} min · {warning.gap_min} min available gap · {warning.verdict} · {warning.source}. {warning.detail}</li>)}</ul></section>;
 }
