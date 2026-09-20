@@ -96,14 +96,6 @@ export function useSwap() {
   });
 }
 
-/** POST /api/stress — miss-a-week catch-up heuristic. */
-export function useStress() {
-  return useMutation({
-    mutationKey: queryKeys.stress,
-    mutationFn: (body: StressRequest) => apiPost<StressResponse>("/stress", body),
-  });
-}
-
 /** GET /api/professors/{surname}/vibes — 404 renders as a "no data" state later. */
 export function useProfessorVibes(surname: string) {
   return useQuery({
